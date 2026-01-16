@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>User WebSocket Test</title>
+</head>
+<body>
+<h2>User – Live Rider Location</h2>
+
+<script>
+    // 🔑 USER JWT (role = USER)
+    const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOGM1ZWEyOC1mNTFmLTQ0ODQtYWEzMy1hMGEwNWNjNGExMTkiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2ODM4MzU1MywiZXhwIjoxNzY4OTg4MzUzfQ.J9ELnMowqHMLRehtpcF3Ji0dKS5K36ZHH6LSUREEGGY";
+
+    const socket = new WebSocket(
+      `ws://localhost:8081/ws/location?token=${token}`
+    );
+
+    socket.onopen = () => {
+      console.log("✅ USER WebSocket CONNECTED");
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("📍 Rider Location Update:", data);
+
+      /**
+       * Expected payload:
+       * {
+       *   riderId: "...",
+       *   lat: 12.9717,
+       *   lng: 77.5948,
+       *   timestamp: 1736668200
+       * }
+       */
+    };
+
+    socket.onerror = (e) => {
+      console.error("❌ USER WebSocket ERROR", e);
+    };
+
+    socket.onclose = () => {
+      console.warn("⚠️ USER WebSocket CLOSED");
+    };
+</script>
+</body>
+</html>

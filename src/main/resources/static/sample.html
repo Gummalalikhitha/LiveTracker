@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Notification Test</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            padding: 20px;
+        }
+
+        h2 {
+            color: #333;
+        }
+
+        #status {
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: green;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #222;
+            color: #fff;
+            padding: 14px 18px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            animation: slideIn 0.4s ease;
+            cursor: pointer;
+            max-width: 300px;
+        }
+
+        .toast strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffd369;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<h2>🔔 SSE Notification Test</h2>
+<div id="status">Connecting...</div>
+
+<script>
+    // ⚠ Replace with your backend URL
+    const BASE_URL = "http://localhost:8081";
+
+    // Connect to SSE
+    const eventSource = new EventSource(
+        BASE_URL + "/api/notifications/subscribe",
+        { withCredentials: true }
+    );
+
+    eventSource.onopen = () => {
+        document.getElementById("status").innerText = "✅ Connected to notification server";
+    };
+
+    eventSource.onerror = (err) => {
+        document.getElementById("status").innerText = "❌ Connection lost";
+        console.error("SSE error:", err);
+    };
+
+    // Listen to INIT event
+    eventSource.addEventListener("INIT", (event) => {
+        console.log("SSE INIT:", event.data);
+    });
+
+    // Listen to notifications
+    eventSource.addEventListener("NOTIFICATION", (event) => {
+        const data = JSON.parse(event.data);
+        console.log("Notification received:", data);
+
+        showToast(data);
+    });
+
+    function showToast(data) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+
+        toast.innerHTML = `
+            <strong>From: ${data.senderId}</strong>
+            <div>${data.message}</div>
+        `;
+
+        toast.onclick = () => {
+            if (data.link) {
+                window.location.href = data.link;
+            }
+            toast.remove();
+        };
+
+        document.body.appendChild(toast);
+
+        // Auto close after 6 seconds
+        setTimeout(() => toast.remove(), 6000);
+    }
+</script>
+
+</body>
+</html>
