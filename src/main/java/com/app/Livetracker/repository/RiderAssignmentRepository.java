@@ -27,6 +27,7 @@ package com.app.Livetracker.repository;
 
 import com.app.Livetracker.entity.AssignmentStatus;
 import com.app.Livetracker.entity.RiderAssignment;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -42,6 +43,9 @@ public interface RiderAssignmentRepository extends JpaRepository<RiderAssignment
     List<RiderAssignment> findByStatus(AssignmentStatus status);
 
     List<RiderAssignment> findByRiderIdAndStatus(UUID riderId, AssignmentStatus status);
+
+
+
 
     Optional<RiderAssignment> findByOrderIdAndRiderId(Long orderId, UUID riderId);
 }

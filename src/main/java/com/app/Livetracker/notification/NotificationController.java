@@ -24,7 +24,8 @@ public class NotificationController {
     // ===============================
     @GetMapping("/subscribe")
     public SseEmitter subscribe(
-            @AuthenticationPrincipal UUID userId) {
+            @AuthenticationPrincipal UUID userId)
+    {
         return notificationService.subscribe(userId);
     }
 
@@ -88,6 +89,4 @@ public class NotificationController {
 
         );
     }
-
-
 }

@@ -1,21 +1,3 @@
-//
-//package com.app.Livetracker.service;
-//
-//import com.app.Livetracker.dto.AssignmentRequestDTO;
-//import com.app.Livetracker.dto.RiderDecisionDTO;
-//import com.app.Livetracker.entity.RiderAssignment;
-//
-//import java.util.List;
-//import java.util.UUID;
-//
-//public interface RiderAssignmentService {
-//
-//    void assignOrder(AssignmentRequestDTO dto);
-//
-//    void riderDecision(RiderDecisionDTO dto);
-//
-//}
-
 package com.app.Livetracker.service;
 import com.app.Livetracker.dto.AssignmentRequestDTO;
 import com.app.Livetracker.dto.RiderDecisionDTO;

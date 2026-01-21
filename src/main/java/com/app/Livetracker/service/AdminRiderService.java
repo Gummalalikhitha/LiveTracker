@@ -1,5 +1,4 @@
 package com.app.Livetracker.service;
-
 import com.app.Livetracker.dto.NearestRiderResponseDTO;
 import com.app.Livetracker.entity.Order;
 import com.app.Livetracker.entity.OrderStatus;
@@ -11,10 +10,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 public class AdminRiderService {
@@ -102,7 +99,6 @@ public class AdminRiderService {
             return null; // malformed redis data
         }
     }
-
     // =====================================================
     // HAVERSINE DISTANCE (KM)
     // =====================================================
@@ -123,7 +119,6 @@ public class AdminRiderService {
                         * Math.sin(dLon / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
         return R * c;
     }
 }

@@ -25,8 +25,8 @@ public class UserLocationController {
             @RequestBody LocationUpdateDTO location) throws Exception {
 
         Map<String, Object> payload = new HashMap<>();
-        payload.put("lat", location.getLat());
-        payload.put("lng", location.getLng());
+        payload.put("lat",location.getLat());
+        payload.put("lng",location.getLng());
         payload.put("role", "USER");
         payload.put("timestamp", Instant.now().getEpochSecond());
 

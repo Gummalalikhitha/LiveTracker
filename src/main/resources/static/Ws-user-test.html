@@ -8,7 +8,7 @@
 
 <script>
     // 🔑 USER JWT (role = USER)
-    const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOGM1ZWEyOC1mNTFmLTQ0ODQtYWEzMy1hMGEwNWNjNGExMTkiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2ODM4MzU1MywiZXhwIjoxNzY4OTg4MzUzfQ.J9ELnMowqHMLRehtpcF3Ji0dKS5K36ZHH6LSUREEGGY";
+    const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmOGM1ZWEyOC1mNTFmLTQ0ODQtYWEzMy1hMGEwNWNjNGExMTkiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc2ODk3NjY3OCwiZXhwIjoxNzY5NTgxNDc4fQ.p8V3b3XD7pqnDt4Bw4yacnQXjUNe4OsYfcGo73fd62E";
 
     const socket = new WebSocket(
       `ws://localhost:8081/ws/location?token=${token}`

@@ -1,10 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <title>WebSocket Test</title>
 </head>
 <body>
-$END$
+<h2>WebSocket Location Test</h2>
+
+<script>
+    const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIyYWVjZTdlZi01OGI2LTRmZDktYjllMC0wYjMxY2IzZDgyNTUiLCJyb2xlIjoiUklERVIiLCJpYXQiOjE3Njg4MjM4NjYsImV4cCI6MTc2OTQyODY2Nn0.N-CAgT0fElzu142GB9qXf1OSp2n1Xd1J0OhjzH7KNiM";
+    const socket = new WebSocket(
+      `ws://localhost:8081/ws/location?token=${token}`
+    );
+
+    socket.onopen = () => {
+      console.log("✅ WebSocket CONNECTED");
+
+      setInterval(() => {
+        const payload = {
+<!--          lat: 12.9716 + Math.random() / 1000,-->
+<!--          lng: 77.5946 + Math.random() / 1000-->
+<!-- lat:17.406, lng:78.469-->
+ lat:17.3737, lng:78.4747
+
+        };
+<!-- const payload = {-->
+<!--  "lat": 17.3616,-->
+<!--  "lng": 78.4747-->
+<!--};-->
+        socket.send(JSON.stringify(payload));
+        console.log("📍 Sent:", payload);
+      }, 3000);
+    };
+
+    socket.onerror = (e) => console.error("❌ WebSocket ERROR", e);
+    socket.onclose = () => console.warn("⚠️ WebSocket CLOSED");
+</script>
 </body>
 </html>
+<!-- ws://<BASE_URL>/ws/location?token=<USER_JWT> -->

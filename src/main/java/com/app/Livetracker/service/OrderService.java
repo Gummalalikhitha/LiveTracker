@@ -1,9 +1,4 @@
-
-
-
-
 package com.app.Livetracker.service;
-
 import com.app.Livetracker.dto.*;
 import com.app.Livetracker.entity.*;
 import com.app.Livetracker.exception.BadRequestException;
@@ -13,6 +8,7 @@ import com.app.Livetracker.notification.NotificationService;
 import com.app.Livetracker.entity.NotificationType;
 import com.app.Livetracker.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,73 +34,9 @@ public class OrderService {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
 
-    // =====================================================
-    // USER: CREATE ORDER
-    // =====================================================
-//    @Transactional
-//    public OrderResponseDTO createOrder(UUID userId, CreateOrderRequestDTO request) {
-//
-//        Order order = Order.builder()
-//                .userId(userId)
-//                .status(OrderStatus.PLACED)
-//                .paymentMode(request.getPaymentMode())
-//                .createdAt(LocalDateTime.now())
-//                .totalAmount(0.0)
-//                .build();
-//        if (request.getPaymentMode() == PaymentMode.COD) {
-//            order.setStatus(OrderStatus.RIDER_REQUESTED);
-//        } else {
-//            order.setStatus(OrderStatus.PAYMENT_PENDING);
-//        }
-//
-//        order = orderRepository.save(order);
-//
-//        double totalAmount = 0.0;
-//
-//        for (OrderItemRequestDTO item : request.getItems()) {
-//
-//            products product = productRepository.findById(item.getProductId())
-//                    .orElseThrow(() -> new NotFoundException("Product not found"));
-//
-//            if (product.getStock() < item.getQuantity()) {
-//                throw new NotFoundException("Insufficient stock");
-//            }
-//
-//            // reduce stock
-//            product.setStock(product.getStock() - item.getQuantity());
-//
-//            OrderItem orderItem = OrderItem.builder()
-//                    .orderId(order.getId())
-//                    .productId(product.getPid())
-//                    .quantity(item.getQuantity())
-//                    .price(product.getPrice())
-//                    .build();
-//
-//            totalAmount += product.getPrice() * item.getQuantity();
-////            order.setTotalAmount(totalAmount);
-////            orderItemRepository.save(orderItem);
-////            orderRepository.save(order);
-//            orderItemRepository.save(orderItem);
-//            order.setTotalAmount(totalAmount);
-//        }
-//
-//
-    ////        order = orderRepository.save(order);
-//
-//        final Long orderId = order.getId();
-//
-//        userRepository.findByRole(Role.ADMIN)
-//                .forEach(admin ->
-//                        notificationService.send(
-//                                admin.getId(),
-//                                NotificationType.ORDER_PLACED,
-//                                "New order received",
-//                                orderId
-//                        )
-//                );
-//
-//        return buildOrderResponse(order);
-//    }
+    @Value("${frontend.base.url}")
+    private String frontendBaseUrl;
+
 
     @Transactional
     public OrderResponseDTO createOrder(UUID userId, CreateOrderRequestDTO request) {
@@ -138,6 +70,7 @@ public class OrderService {
 
             // Reduce stock
             product.setStock(product.getStock() - item.getQuantity());
+            productRepository.save(product);
 
             OrderItem orderItem = OrderItem.builder()
                     .orderId(order.getId())
@@ -150,6 +83,7 @@ public class OrderService {
 
             orderItemRepository.save(orderItem);
             order.setTotalAmount(totalAmount);
+            orderRepository.save(order);
         }
 
         final Long orderId = order.getId();
@@ -160,23 +94,18 @@ public class OrderService {
         userRepository.findByRole(Role.ADMIN)
                 .forEach(admin ->
                         notificationService.send(
-                                admin.getId(),              // 👈 receiver (ADMIN)
-                                userId,                     // 👈 sender (CUSTOMER)
+                                admin.getId(),
+                                userId,
                                 NotificationType.ORDER_PLACED,
                                 "New order received",
                                 orderId,
-                                "/api/admin/orders"+orderId+"/status"
-
-
-                                // 👈 frontend navigation link
+                                frontendBaseUrl + "/assignRider?orderId=" + orderId
                         )
                 );
 
         return buildOrderResponse(order);
     }
-    // =====================================================
-    // USER: CANCEL ORDER
-    // =====================================================
+
     public OrderResponseDTO cancelOrder(Long orderId, UUID userId) {
 
         Order order = orderRepository.findById(orderId)
@@ -223,8 +152,9 @@ public class OrderService {
                                     NotificationType.RIDER_ASSIGNED,
                                     "Rider assigned to your order",
                                     order.getId(),
-                                    "/api/user/orders"+orderId
-
+                                    frontendBaseUrl
+                                            + "/CurrentOrder?orderId=" + order.getId()
+                                            + "&userId=" + order.getUserId()
                             )
                     );
 
@@ -237,8 +167,7 @@ public class OrderService {
                                         NotificationType.RIDER_REQUEST,
                                         "New delivery assigned",
                                         order.getId(),
-                                        "/api/rider/orders"+orderId
-
+                                        frontendBaseUrl + "/riderDashboard"
                                 ));
             }
         }
@@ -284,11 +213,11 @@ public class OrderService {
                     order.getUserId(),
                     riderId,
                     NotificationType.PICKED_UP,
-
                     "Your order has been picked up",
                     order.getId(),
-                    "/api/user/orders"+orderId
-
+                    frontendBaseUrl
+                            + "/CurrentOrder?orderId=" + order.getId()
+                            + "&userId=" + order.getUserId()
             );
         }
 
@@ -299,8 +228,9 @@ public class OrderService {
                     NotificationType.OUT_FOR_DELIVERY,
                     "Out for delivery",
                     order.getId(),
-                    "/api/user/orders"+orderId
-
+                    frontendBaseUrl
+                            + "/CurrentOrder?orderId=" + order.getId()
+                            + "&userId=" + order.getUserId()
             );
         }
 
@@ -311,21 +241,22 @@ public class OrderService {
                     NotificationType.REACHED_DESTINATION,
                     "Rider has arrived at your location",
                     order.getId(),
-                    "/api/user/orders"+orderId
-
+                    frontendBaseUrl
+                            + "/CurrentOrder?orderId=" + order.getId()
+                            + "&userId=" + order.getUserId()
             );
         }
 
         if (status == OrderStatus.DELIVERED) {
-
             notificationService.send(
                     order.getUserId(),
                     riderId,
                     NotificationType.DELIVERED,
                     "Order delivered successfully",
                     order.getId(),
-                    "/api/user/orders"+orderId
-
+                    frontendBaseUrl
+                            + "/CurrentOrder?orderId=" + order.getId()
+                            + "&userId=" + order.getUserId()
             );
 
             userRepository.findByRole(Role.ADMIN)
@@ -336,9 +267,7 @@ public class OrderService {
                                     NotificationType.DELIVERED,
                                     "Order delivered",
                                     order.getId(),
-                                    "/api/rider/orders"+orderId
-
-
+                                    frontendBaseUrl + "/orderDetail"
                             )
                     );
         }

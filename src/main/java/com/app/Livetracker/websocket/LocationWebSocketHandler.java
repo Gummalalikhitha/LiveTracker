@@ -14,6 +14,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -86,10 +87,19 @@ public class LocationWebSocketHandler extends TextWebSocketHandler {
         redisPayload.put("role", role);
         redisPayload.put("timestamp", Instant.now().getEpochSecond());
 
+//        String redisKey = "user:location:" + senderId;
+//        String redisValue = objectMapper.writeValueAsString(redisPayload);
+//
+//        redisTemplate.opsForValue().set(redisKey, redisValue);
         String redisKey = "user:location:" + senderId;
         String redisValue = objectMapper.writeValueAsString(redisPayload);
 
-        redisTemplate.opsForValue().set(redisKey, redisValue);
+        redisTemplate.opsForValue().set(
+                redisKey,
+                redisValue,
+                20,
+                TimeUnit.SECONDS
+        );
 
         // =====================================================
         // 🚚 RIDER → USER real-time forwarding

@@ -26,7 +26,7 @@ public class AuthController {
     // ===============================
     // SIGNUP
     // ===============================
-    @PreAuthorize("hasRole('USER')")
+
     @PostMapping("/signup")
     public ResponseEntity<String> signup(
             @Valid @RequestBody SignupRequestDTO dto) {
@@ -35,10 +35,6 @@ public class AuthController {
         return ResponseEntity.ok("User registered successfully");
     }
 
-    // ===============================
-    // LOGIN
-    // Generates BOTH access & refresh tokens
-    // ===============================
     @PostMapping("/login")
     public ResponseEntity<JwtResponseDTO> login(
             @Valid @RequestBody LoginRequestDTO dto) {

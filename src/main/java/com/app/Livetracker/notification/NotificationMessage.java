@@ -4,7 +4,7 @@ import com.app.Livetracker.entity.NotificationType;
 import lombok.*;
 
 import java.time.Instant;
-
+import java.util.UUID;
 @Getter
 @Setter
 @AllArgsConstructor
@@ -12,10 +12,11 @@ import java.time.Instant;
 @Builder
 public class NotificationMessage {
 
+    private Long id;
     private NotificationType type;
     private String message;
     private Long orderId;
-    private Instant timestamp;
+    private UUID senderId;
     private String link;
+    private Instant timestamp;
 }
-

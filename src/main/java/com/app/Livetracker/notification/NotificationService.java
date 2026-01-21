@@ -5,7 +5,9 @@ import com.app.Livetracker.entity.NotificationType;
 import com.app.Livetracker.repository.NotificationRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.Instant;
@@ -16,6 +18,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
+    @Value("${baseurl}")
+    private String baseUrl;
 
     private final NotificationRepository notificationRepository;
 
@@ -46,49 +50,56 @@ public class NotificationService {
         return emitter;
     }
 
-    // ===============================
-    // SEND + STORE NOTIFICATION
-    // ===============================
-    public void send(
-            UUID userId,
-            UUID senderId,
-            NotificationType type,
-            String message,
-            Long orderId,
-            String Link) {
+public void send(
+        UUID userId,
+        UUID senderId,
+        NotificationType type,
+        String message,
+        Long orderId,
+        String link) {
 
-        // 1️⃣ Save to DB
+    // 1️⃣ Save to DB
+    Notification notification = Notification.builder()
+            .userId(userId)
+            .senderId(senderId)
+            .type(type)
+            .message(message)
+            .orderId(orderId)
+            .link(link)
+            .read(false)
+            .createdAt(Instant.now())
+            .build();
 
+    notificationRepository.save(notification);
 
-        Notification notification = Notification.builder()
-                .userId(userId)
-                .senderId(senderId)
-                .type(type)
-                .message(message)
-                .orderId(orderId)
-//                .link(Link)
-                .read(false)
-                .createdAt(Instant.now())
-                .build();
+    // 2️⃣ Push via SSE
+    SseEmitter emitter = emitters.get(userId);
+    if (emitter == null) return;
 
-        notificationRepository.save(notification);
+    NotificationMessage payload = NotificationMessage.builder()
+            .id(notification.getId())
+            .type(type)
+            .message(message)
+            .orderId(orderId)
+            .senderId(senderId)
+            .link(link)
+            .timestamp(notification.getCreatedAt())
+            .build();
 
-        // 2️⃣ Push via SSE (if online)
-        SseEmitter emitter = emitters.get(userId);
-        if (emitter == null) return;
-
-        try {
-            emitter.send(SseEmitter.event()
-                    .name(type.name())
-                    .data(notification));
-        } catch (Exception e) {
-            emitters.remove(userId);
-        }
+    try {
+        emitter.send(SseEmitter.event()
+                .name(type.name())
+                .data(payload));
+    } catch (Exception e) {
+        emitters.remove(userId);
     }
+}
+
+
     // ===============================
     // TEMP TEST METHOD (AUTO FIRE)
     // ===============================
-    @PostConstruct
+//    @PostConstruct
     public void testNotification() {
         send(
                 UUID.fromString("11111111-1111-1111-1111-111111111111"),
@@ -96,7 +107,7 @@ public class NotificationService {
                 NotificationType.ORDER_PLACED,
                 "Order placed successfully",
                 101L,
-                "/"
+                baseUrl+"/api/admin/assign"
         );
     }
 }

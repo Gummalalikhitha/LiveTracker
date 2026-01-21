@@ -1,117 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
     <title>SSE Notification Test</title>
-
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            padding: 20px;
-        }
+        body { font-family: Arial; background:#f4f4f4; padding:20px; }
+        li { cursor:pointer; margin-bottom:8px; }
+        .sender { font-size:12px; color:gray; }
+        .notif-link {
+    font-size: 13px;
+    color: #007bff;
+    text-decoration: underline;
+}
+.notif-link:hover {
+    color: #0056b3;
+}
 
-        h2 {
-            color: #333;
-        }
-
-        #status {
-            margin-bottom: 15px;
-            font-weight: bold;
-            color: green;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #222;
-            color: #fff;
-            padding: 14px 18px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            animation: slideIn 0.4s ease;
-            cursor: pointer;
-            max-width: 300px;
-        }
-
-        .toast strong {
-            display: block;
-            margin-bottom: 5px;
-            color: #ffd369;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
     </style>
 </head>
 <body>
 
-<h2>🔔 SSE Notification Test</h2>
-<div id="status">Connecting...</div>
+<h2>🔔 Live Notifications</h2>
+<p id="status">Connecting...</p>
+<ul id="notifications"></ul>
 
 <script>
-    // ⚠ Replace with your backend URL
-    const BASE_URL = "http://localhost:8081";
+    // Request browser permission
+    if ("Notification" in window) {
+        Notification.requestPermission();
+    }
 
-    // Connect to SSE
     const eventSource = new EventSource(
-        BASE_URL + "/api/notifications/subscribe",
-        { withCredentials: true }
+        "http://localhost:8081/api/notifications/subscribe-test"
     );
 
-    eventSource.onopen = () => {
-        document.getElementById("status").innerText = "✅ Connected to notification server";
-    };
+eventSource.onopen = () => {
+    document.getElementById("status").innerText = "🟢 Connected";
+    document.getElementById("status").style.color = "green";
+};
 
-    eventSource.onerror = (err) => {
-        document.getElementById("status").innerText = "❌ Connection lost";
-        console.error("SSE error:", err);
-    };
 
-    // Listen to INIT event
-    eventSource.addEventListener("INIT", (event) => {
-        console.log("SSE INIT:", event.data);
+    // ORDER PLACED
+    eventSource.addEventListener("ORDER_PLACED", e => {
+        const data = JSON.parse(e.data);
+        renderNotification(data);
+        showPopup("Order Placed", data.message, data.link);
     });
 
-    // Listen to notifications
-    eventSource.addEventListener("NOTIFICATION", (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Notification received:", data);
 
-        showToast(data);
-    });
+function renderNotification(data) {
+    const li = document.createElement("li");
 
-    function showToast(data) {
-        const toast = document.createElement("div");
-        toast.className = "toast";
+    li.innerHTML = `
+        <b>${data.type}</b> → ${data.message}<br/>
 
-        toast.innerHTML = `
-            <strong>From: ${data.senderId}</strong>
-            <div>${data.message}</div>
-        `;
+        <span class="sender">
+            From: ${data.senderId ?? "System"}
+        </span><br/>
 
-        toast.onclick = () => {
-            if (data.link) {
-                window.location.href = data.link;
-            }
-            toast.remove();
-        };
+        ${
+            data.link
+            ? `<a href="${data.link}" class="notif-link" target="_self">
+                   View details →
+               </a>`
+            : ""
+        }
+    `;
 
-        document.body.appendChild(toast);
+    // Click anywhere on notification
+    li.onclick = () => {
+        if (data.link) {
+            window.location.href = data.link;
+        }
+    };
 
-        // Auto close after 6 seconds
-        setTimeout(() => toast.remove(), 6000);
+    document.getElementById("notifications").appendChild(li);
+}
+     function showPopup(title, message, link) {
+        if (Notification.permission === "granted") {
+            const n = new Notification(title, { body: message });
+            n.onclick = () => {
+                if (link) window.location.href = link;
+            };
+        }
     }
 </script>
-
 </body>
 </html>

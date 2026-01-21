@@ -52,9 +52,12 @@ package com.app.Livetracker.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -66,6 +69,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
 @Configuration
+@EnableMethodSecurity
 @EnableWebSecurity
 public class SecurityConfig {
 
@@ -83,34 +87,30 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/admin/**",
-                                "/api/user/**",
-                                "api/image/**",
+//                                "/api/admin/**",
+//                                "/api/user/**",
+//                                "/api/image/**",
                                 "/api/auth/**",
-                                "/api/admin/assign/",
-                                "/api/rider/**",
-//                                "/api/notifications/subscribe-test",
-                                "/api/notifications/**",
+//                                "/api/admin/assign/",
+//                                "/api/rider/**",
+//                                "/api/notifications/**",
                                 "/ws/**",
+                        "/sample.html",
                         "/swagger-ui.html",
                         "/swagger-ui/**",
                  "/v3/api-docs/**",
                  "/v3/api-docs.yaml"
-
                  ).permitAll()
-
-//                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/rider/**").hasRole("RIDER")
-                                .requestMatchers("/api/user/**").hasRole("USER")
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+//                        .requestMatchers("/api/notifications/**").authenticated()
+//                        .requestMatchers("/api/rider/**").hasRole("RIDER")
+//                                .requestMatchers("/api/user/**").hasRole("USER")
+//                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -130,5 +130,11 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+    @Bean
+    UserDetailsService userDetailsService() {
+        return username -> {
+            throw new UsernameNotFoundException("No in-memory users");
+        };
     }
 }

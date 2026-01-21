@@ -11,15 +11,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/rider")
 @RequiredArgsConstructor
 public class RiderDecisionController {
-
     private final RiderAssignmentService service;
     @PreAuthorize("hasRole('RIDER')")
     @PostMapping("/decision")
     public ResponseEntity<String> riderDecision(
             @RequestBody RiderDecisionDTO dto) {
-
         service.riderDecision(dto);
         return ResponseEntity.ok("Rider decision updated successfully");
     }
-
 }

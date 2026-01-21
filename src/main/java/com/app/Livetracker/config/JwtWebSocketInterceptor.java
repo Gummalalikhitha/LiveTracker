@@ -26,7 +26,6 @@ public class JwtWebSocketInterceptor implements HandshakeInterceptor {
             WebSocketHandler wsHandler,
             Map<String, Object> attributes) {
 
-        // ws://localhost:8082/ws/location?token=xxx
         String query = request.getURI().getQuery();
 
         if (query == null) {

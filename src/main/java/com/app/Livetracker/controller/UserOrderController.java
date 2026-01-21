@@ -24,7 +24,6 @@ public class UserOrderController {
     public OrderResponseDTO createOrder(
             @RequestBody CreateOrderRequestDTO request,
             @AuthenticationPrincipal UUID userId) {
-
         return orderService.createOrder(userId, request);
     }
 
@@ -34,7 +33,6 @@ public class UserOrderController {
     public OrderResponseDTO cancelOrder(
             @PathVariable Long orderId,
             @AuthenticationPrincipal UUID userId) {
-
         return orderService.cancelOrder(orderId, userId);
     }
 
@@ -44,14 +42,12 @@ public class UserOrderController {
     public OrderResponseDTO getOrderById(
             @PathVariable Long orderId,
             @AuthenticationPrincipal UUID userId) {
-
         return orderService.getOrderByIdForUser(orderId, userId);
     }
     @GetMapping
     @PreAuthorize("hasRole('USER')")
     public List<OrderResponseDTO> getMyOrders(
             @AuthenticationPrincipal UUID userId) {
-
         return orderService.getOrdersForUser(userId);
     }
 }
